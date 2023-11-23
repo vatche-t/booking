@@ -1,0 +1,12 @@
+peewee 
+psycopg2-binary
+requests
+python-dotenv
+loguru
+pymongo
+aiohttp_socks
+pytest
+Beautifulsoup4
+lxml
+fake_useragent
+pandas
