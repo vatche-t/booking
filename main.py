@@ -7,7 +7,7 @@ from loguru import logger
 
 import config
 
-logger.add(sink="invoice_crawler.log", rotation="50 MB")
+logger.add(sink="crawler.log", rotation="50 MB")
 
 max_process_life_time = int(config.MAX_PROCESS_LIFE_TIME)
 process_restart_delay_time = int(config.PROCESS_RESTART_DELAY_TIME)
