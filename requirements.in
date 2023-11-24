@@ -4,6 +4,7 @@ requests
 python-dotenv
 loguru
 pymongo
+pyarrow
 aiohttp_socks
 pytest
 Beautifulsoup4

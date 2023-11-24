@@ -1,3 +1,6 @@
+import os
+import glob
+
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -5,10 +8,20 @@ from loguru import logger
 
 
 def scrape_hotel_info(hotel_name, location):
-    url_overall = f"https://www.booking.com/hotel/{location}/{hotel_name}.en-gb.html?label=gen173nr-1BCAso3QFCKWZvdXItc2Vhc29ucy1iYW5na29rLWF0LWNoYW8tcGhyYXlhLXJpdmVySDNYBGhNiAEBmAENuAEYyAEM2AEB6AEBiAIBqAIEuAKtsIKrBsACAdICJDVkNTk4NDQ1LTYwYjAtNDRiYy05NzE3LTA2NDA3NzdjZTkzY9gCBeACAQ&sid=8ca968abfb7a6c67280fba58227dba59&dist=0&group_adults=2&group_children=0&keep_landing=1&no_rooms=1&sb_price_type=total&type=total&#tab-main"
+    # Set up the loguru logger
+    log_format = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <cyan>{level: <8}</cyan> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+    logger.add("scraping_log.log", rotation="500 MB", level="INFO", format=log_format, colorize=True, serialize=True)
+
+    # Log start of the function
+    logger.info(f"Scraping hotel info for {hotel_name} in {location}")
+
+    url_overall = f"https://www.booking.com/hotel/{location}/{hotel_name}.en-gb.html"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
+
+    # Log the URL being scraped
+    logger.info(f"Fetching data from URL: {url_overall}")
 
     response = requests.get(url_overall, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -18,6 +31,11 @@ def scrape_hotel_info(hotel_name, location):
     total_reviews = soup.select_one(".d935416c47").text.strip() if soup.select_one(".d935416c47") else ""
     overall_rate_text = soup.select_one(".cb2cbb3ccb").text.strip() if soup.select_one(".cb2cbb3ccb") else ""
 
+    # Log the extracted data
+    logger.info(f"Overall review score: {review_score_overall}")
+    logger.info(f"Total reviews: {total_reviews}")
+    logger.info(f"Overall rate text: {overall_rate_text}")
+
     # Extract individual category ratings
     categories = ["Staff", "Facilities", "Cleanliness", "Comfort", "Value for money", "Location"]
     category_ratings = {}
@@ -26,10 +44,15 @@ def scrape_hotel_info(hotel_name, location):
         element = soup.find("span", class_="c-score-bar__title", text=category)
         if element:
             rating_span = element.find_next("span", class_="c-score-bar__score")
+            logger.info(f"Category: {category}, Element: {element}, Rating Span: {rating_span}")
+
             # Check for unwanted span and skip if found
             if rating_span and "fcd9eec8fb" not in rating_span["class"]:
                 rating = rating_span.text.strip()
                 category_ratings[category.lower().replace(" ", "_")] = rating
+
+    # Log the category ratings
+    logger.info(f"Category Ratings: {category_ratings}")
 
     # Create a list with the parsed data
     hotel_info_list = [
@@ -43,13 +66,16 @@ def scrape_hotel_info(hotel_name, location):
     ]
 
     # Convert list to a pandas DataFrame
-    overal_review_df = pd.DataFrame(hotel_info_list)
+    overall_review_df = pd.DataFrame(hotel_info_list)
 
-    return overal_review_df
+    # Log the end of the function
+    logger.info(f"Scraping completed for {hotel_name} in {location}")
+
+    return overall_review_df
 
 
-def scrape_reviews(hotel_name):
-    url_review = f"https://www.booking.com/reviewlist.en-gb.html?aid=304142&label=gen173nr-1FCAEoggI46AdIM1gEaLACiAEBmAExuAEYyAEM2AEB6AEB-AECiAIBqAIEuAKd9f2qBsACAdICJGRhZTE4M2YxLThkOTctNGE2My1hZDhkLTYxNDMyYWZlNzI2M9gCBeACAQ&sid=8ca968abfb7a6c67280fba58227dba59&srpvid=68a6725495cf000e&;cc1=us&pagename={hotel_name}&r_lang=&review_topic_category_id=&type=total&score=&sort=f_recent_desc&time_of_year=&dist=1&rows=10&rurl=&text=&translate=&_=1700757341034"
+def scrape_reviews(hotel_name, location):
+    url_review = "https://www.booking.com/reviewlist.html"
 
     # Set up the headers
     headers = {
@@ -58,24 +84,13 @@ def scrape_reviews(hotel_name):
 
     # Set up the payload template
     payload_template = {
-        "aid": "304142",
-        "label": "gen173nr-1FCAEoggI46AdIM1gEaLACiAEBmAExuAEYyAEM2AEB6AEB-AECiAIBqAIEuAKd9f2qBsACAdICJGRhZTE4M2YxLThkOTctNGE2My1hZDhkLTYxNDMyYWZlNzI2M9gCBeACAQ",
-        "sid": "8ca968abfb7a6c67280fba58227dba59",
-        "srpvid": "68a6725495cf000e",
-        "cc1": "us",
-        "pagename": "passalacqua-moltrasio",
-        "r_lang": "",
-        "review_topic_category_id": "",
+        "cc1": f"{location}",
+        "pagename": f"{hotel_name}",
         "type": "total",
-        "score": "",
         "sort": "f_recent_desc",
         "time_of_year": "",
         "dist": "1",
         "rows": "10",
-        "rurl": "",
-        "text": "",
-        "translate": "",
-        "_": "1700757341034",
     }
 
     # Initialize parameters list
@@ -88,9 +103,10 @@ def scrape_reviews(hotel_name):
     data_list = []
 
     # Make requests and scrape data
-    for page in range(1, 26):  # 25 pages
+    page = 1
+    while True:
         payload = payload_template.copy()
-        payload["offset"] = page  # Adjust offset for each page
+        payload["offset"] = (page - 1) * int(payload["rows"])  # Adjust offset for each page
 
         # Make the request
         response = requests.get(url_review, headers=headers, params=payload)
@@ -103,10 +119,15 @@ def scrape_reviews(hotel_name):
         parsed = []
 
         # Extract reviews
-        for review_box in soup.select(".review_list_new_item_block"):
+        review_boxes = soup.select(".review_list_new_item_block")
+        if not review_boxes:
+            break  # Break out of the loop if no reviews are found
+
+        for review_box in review_boxes:
             get_css = lambda css: review_box.select_one(css).text.strip() if review_box.select_one(css) else ""
             parsed.append(
                 {
+                    "hotel_name": hotel_name,
                     "review_id": review_box.get("data-review-url"),
                     "review_score": get_css(".bui-review-score__badge"),
                     "review_title": get_css(".c-review-block__title"),
@@ -131,6 +152,8 @@ def scrape_reviews(hotel_name):
 
         # Process parsed data as needed
         logger.info(f"Page {page} processed. Total reviews: {len(parsed)}")
+
+        page += 1
 
     # Convert data list to a pandas DataFrame
     review_details_df = pd.DataFrame(data_list)
@@ -168,16 +191,75 @@ def extract_names_and_locations_from_file(file_path):
     return data_list
 
 
+def merge_hotel_info_and_reviews(hotel_name, location):
+    # Scrape hotel info
+    hotel_info_df = scrape_hotel_info(hotel_name, location)
+
+    # Check if hotel_info_df is empty or has an error
+    if hotel_info_df.empty:
+        # Log the error and return an empty DataFrame
+        logger.error(f"Error scraping hotel info for {hotel_name} in {location}")
+        return pd.DataFrame()
+
+    # Scrape reviews
+    reviews_df = scrape_reviews(hotel_name, location)
+
+    # Check if reviews_df is empty or has an error
+    if reviews_df.empty:
+        # Log the error and return an empty DataFrame
+        logger.error(f"Error scraping reviews for {hotel_name} in {location}")
+        return pd.DataFrame()
+
+    # Merge DataFrames on 'hotel_name'
+    merged_df = pd.merge(reviews_df, hotel_info_df, on="hotel_name", how="left")
+
+    return merged_df
+
+
 file_path = "hotels.txt"  # Replace with the actual path to your file
 hotel_data = extract_names_and_locations_from_file(file_path)
 
+
+def save_to_feather(df, file_name):
+    folder_path = "hotel_data_feather"
+    os.makedirs(folder_path, exist_ok=True)
+
+    file_path = os.path.join(folder_path, f"{file_name}.feather")
+
+    try:
+        df.to_feather(file_path)
+        print(f"File saved successfully: {file_path}")
+    except Exception as e:
+        print(f"Error saving file {file_path}: {e}")
+        # Log the error or take any necessary logging action
+        pass  # Continue execution even if there's an error
+
+
+# Inside your loop
 for hotel in hotel_data:
     hotel_name = hotel["hotel_name"]
     location = hotel["location"]
 
-    hotel_info = scrape_hotel_info(hotel_name, location)
-    reviews_df = scrape_reviews(hotel_name)
+    merged_hotel_data = merge_hotel_info_and_reviews(hotel_name, location)
 
-    # Print or use the data as needed
-    print(hotel_info)
-    print(reviews_df)
+    # Save the merged_data as a feather file
+    save_to_feather(merged_hotel_data, hotel_name)
+
+
+def merge_hotel_feather_files_and_save_csv():
+    folder_path = "hotel_data"
+    feather_files = glob.glob(os.path.join(folder_path, "*.feather"))
+    dfs = []
+    for feather_file in feather_files:
+        df = pd.read_feather(feather_file)
+        dfs.append(df)
+
+    merged_hotels_dataframe = pd.concat(dfs, ignore_index=True)
+    csv_file_path = os.path.join(folder_path, "hotel_data_booking.csv")
+
+    # Specify encoding as utf-8
+    merged_hotels_dataframe.to_csv(csv_file_path, index=False, encoding="utf-8")
+
+
+# Call the function to merge feather files and save as CSV
+merge_hotel_feather_files_and_save_csv()
