@@ -274,11 +274,6 @@ for hotel in hotel_data:
     save_to_feather(merged_hotel_data, hotel_name)
 
 
-import glob
-import os
-import pandas as pd
-
-
 def merge_feather_files_and_save_csv_and_excel():
     folder_path = "hotel_data_feather"
     feather_files = glob.glob(os.path.join(folder_path, "*.feather"))
