@@ -3,13 +3,12 @@ rosewood-hong-kong, hk
 four-seasons-bangkok, th
 the-upper-house, hk
 aman, tokyo, jp
-mamounia, ma 
 soneva-fushi, mv
 four-seasons-firenze, it
 mandarin-oriental-bangkok, th
 capella-bangkok, th
 the-calile, au
-chable-yucatan-chochola, mx
+chable-resort-amp-spa, mx
 aman, venice, it
 raffles, sg
 the-connaught, gb
@@ -18,12 +17,11 @@ rosewood-sao-paulo, br
 capella-singapore, sg
 le-bristol-paris, fr
 park-hyatt-kyoto, jp
-la-reserve-paris, fr
+la-reserve-paris-amp-spa, fr
 cheval-blanc-paris, fr
 four-seasons-astir-palace-athens, gr
-desa-potato-head-seminyak, id
+potato-head-studios-at-desa-potato-head, id
 the-oberoi-amarvilas-agra, in
-mamounia, ma 
 one-amp-only-mandarina, mx 
 singita-lodges-kruger, za 
 claridge-s, gb 
