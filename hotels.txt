@@ -31,7 +31,7 @@ le-sirenuse, it
 borgo-egnazia-spa-golf-ville, it 
 royal-mansour-marrakech, ma 
 the-maybourne-riviera, fr 
-gleneagles-st-andrews, gb
+the-gleneagles, gb
 soneva-jani, mv 
 the-siam, th 
 badrutt-s-palace-st-moritz, ch 
