@@ -1,10 +1,13 @@
 import os
 import glob
+import time
 
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from loguru import logger
+
+import config
 
 
 def scrape_hotel_info(hotel_name, location):
@@ -109,7 +112,7 @@ def scrape_reviews(hotel_name, location):
         payload["offset"] = (page - 1) * int(payload["rows"])  # Adjust offset for each page
 
         # Make the request
-        response = requests.get(url_review, headers=headers, params=payload, timeout=10)
+        response = requests.get(url_review, headers=headers, params=payload)
 
         # Save parameters to the list
         params_list.append(payload)
@@ -154,6 +157,7 @@ def scrape_reviews(hotel_name, location):
         logger.info(f"Page {page} processed. Total reviews: {len(parsed)}")
 
         page += 1
+        time.sleep(1.5)
 
     # Convert data list to a pandas DataFrame
     review_details_df = pd.DataFrame(data_list)
@@ -192,21 +196,45 @@ def extract_names_and_locations_from_file(file_path):
 
 
 def merge_hotel_info_and_reviews(hotel_name, location):
-    # Scrape hotel info
-    hotel_info_df = scrape_hotel_info(hotel_name, location)
+    # Scrape hotel info with retries
+    for _ in range(config.MAX_RETRIES):
+        try:
+            hotel_info_df = scrape_hotel_info(hotel_name, location)
 
-    # Check if hotel_info_df is empty or has an error
-    if hotel_info_df.empty:
-        # Log the error and return an empty DataFrame
+            # Check if hotel_info_df is empty
+            if not hotel_info_df.empty:
+                break  # Break out of the retry loop if successful
+            else:
+                # Log the error and retry after a delay
+                logger.warning(f"Retrying hotel info scraping for {hotel_name} in {location}")
+                time.sleep(config.RETRY_DELAY)
+        except Exception as e:
+            # Log the exception and retry after a delay
+            logger.warning(f"Exception during hotel info scraping for {hotel_name} in {location}: {str(e)}")
+            time.sleep(config.RETRY_DELAY)
+    else:
+        # If the loop completes without a successful scrape, log an error and return an empty DataFrame
         logger.error(f"Error scraping hotel info for {hotel_name} in {location}")
         return pd.DataFrame()
 
-    # Scrape reviews
-    reviews_df = scrape_reviews(hotel_name, location)
+    # Scrape reviews with retries
+    for _ in range(config.MAX_RETRIES):
+        try:
+            reviews_df = scrape_reviews(hotel_name, location)
 
-    # Check if reviews_df is empty or has an error
-    if reviews_df.empty:
-        # Log the error and return an empty DataFrame
+            # Check if reviews_df is empty
+            if not reviews_df.empty:
+                break  # Break out of the retry loop if successful
+            else:
+                # Log the error and retry after a delay
+                logger.warning(f"Retrying reviews scraping for {hotel_name} in {location}")
+                time.sleep(config.RETRY_DELAY)
+        except Exception as e:
+            # Log the exception and retry after a delay
+            logger.warning(f"Exception during reviews scraping for {hotel_name} in {location}: {str(e)}")
+            time.sleep(config.RETRY_DELAY)
+    else:
+        # If the loop completes without a successful scrape, log an error and return an empty DataFrame
         logger.error(f"Error scraping reviews for {hotel_name} in {location}")
         return pd.DataFrame()
 
