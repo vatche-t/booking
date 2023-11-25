@@ -274,19 +274,39 @@ for hotel in hotel_data:
     save_to_feather(merged_hotel_data, hotel_name)
 
 
-def merge_hotel_feather_files_and_save_csv():
-    folder_path = "hotel_data"
+import glob
+import os
+import pandas as pd
+
+
+def merge_feather_files_and_save_csv_and_excel():
+    folder_path = "hotel_data_feather"
     feather_files = glob.glob(os.path.join(folder_path, "*.feather"))
-    dfs = []
+
+    # Initialize an empty list to store DataFrames
+    reviews_df = []
+
+    # Read each feather file into a DataFrame and append to the list
     for feather_file in feather_files:
         df = pd.read_feather(feather_file)
-        dfs.append(df)
+        reviews_df.append(df)
 
-    merged_hotels_dataframe = pd.concat(dfs, ignore_index=True)
-    csv_file_path = os.path.join(folder_path, "hotel_data_booking.csv")
+    # Merge all DataFrames on 'hotel_name'
+    final_hotels_reviews_df = pd.concat(reviews_df, ignore_index=True)
 
-    # Specify encoding as utf-8
-    merged_hotels_dataframe.to_csv(csv_file_path, index=False, encoding="utf-8")
+    # Save the merged DataFrame as a CSV file with utf-8 encoding
+    csv_file_path = os.path.join(folder_path, "../merged_data.csv")
+    final_hotels_reviews_df.to_csv(csv_file_path, index=False, encoding="utf-8")
+
+    # Save the merged DataFrame as an Excel file with utf-8 encoding
+    excel_file_path = os.path.join(folder_path, "../merged_data.xlsx")
+    final_hotels_reviews_df.to_excel(excel_file_path, index=False, encoding="utf-8")
+
+    return final_hotels_reviews_df
+
+
+# Call the function to merge feather files and save as CSV and Excel
+merge_feather_files_and_save_csv_and_excel()
 
 
 # Call the function to merge feather files and save as CSV
