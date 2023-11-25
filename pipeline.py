@@ -294,19 +294,18 @@ def merge_feather_files_and_save_csv_and_excel():
     final_hotels_reviews_df = pd.concat(reviews_df, ignore_index=True)
 
     # Save the merged DataFrame as a CSV file with utf-8 encoding
-    csv_file_path = os.path.join(folder_path, "../merged_data.csv")
-    final_hotels_reviews_df.to_csv(csv_file_path, index=False, encoding="utf-8")
+    csv_file_path = os.path.join(folder_path, "../final_hotel_data.csv")
+    final_hotels_reviews_df.to_csv(
+        csv_file_path,
+        index=False,
+    )
 
     # Save the merged DataFrame as an Excel file with utf-8 encoding
-    excel_file_path = os.path.join(folder_path, "../merged_data.xlsx")
-    final_hotels_reviews_df.to_excel(excel_file_path, index=False, encoding="utf-8")
+    excel_file_path = os.path.join(folder_path, "../final_hotel_data.xlsx")
+    final_hotels_reviews_df.to_excel(excel_file_path, index=False)
 
     return final_hotels_reviews_df
 
 
 # Call the function to merge feather files and save as CSV and Excel
 merge_feather_files_and_save_csv_and_excel()
-
-
-# Call the function to merge feather files and save as CSV
-merge_hotel_feather_files_and_save_csv()
