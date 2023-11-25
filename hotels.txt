@@ -43,3 +43,8 @@ the-savoy, gb
 equinox-hudson-yards, us 
 six-senses-ibiza, es 
 de-crillon-paris, fr 
+the-old-red-lion, gb
+yara-galle-frot-galle, lk
+toho-building, jp
+precise-rugen, de
+riu-plaza-manhattan-times-square, us

@@ -93,7 +93,7 @@ def scrape_reviews(hotel_name, location):
         "sort": "f_recent_desc",
         "time_of_year": "",
         "dist": "1",
-        "rows": "10",
+        "rows": "25",
     }
 
     # Initialize parameters list
