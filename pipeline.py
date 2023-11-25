@@ -109,7 +109,7 @@ def scrape_reviews(hotel_name, location):
         payload["offset"] = (page - 1) * int(payload["rows"])  # Adjust offset for each page
 
         # Make the request
-        response = requests.get(url_review, headers=headers, params=payload)
+        response = requests.get(url_review, headers=headers, params=payload, timeout=10)
 
         # Save parameters to the list
         params_list.append(payload)
