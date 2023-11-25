@@ -238,10 +238,14 @@ def merge_hotel_info_and_reviews(hotel_name, location):
         logger.error(f"Error scraping reviews for {hotel_name} in {location}")
         return pd.DataFrame()
 
-    # Merge DataFrames on 'hotel_name'
-    merged_df = pd.merge(reviews_df, hotel_info_df, on="hotel_name", how="left")
+    # Replace empty values with space in both DataFrames
+    hotel_info_df.replace("", " ", inplace=True)
+    reviews_df.replace("", " ", inplace=True)
 
-    return merged_df
+    # Merge DataFrames on 'hotel_name'
+    merged_hotels_df = pd.merge(reviews_df, hotel_info_df, on="hotel_name", how="left")
+
+    return merged_hotels_df
 
 
 file_path = "hotels.txt"  # Replace with the actual path to your file
