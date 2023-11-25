@@ -44,7 +44,7 @@ def scrape_hotel_info(hotel_name, location):
     category_ratings = {}
 
     for category in categories:
-        element = soup.find("span", class_="c-score-bar__title", text=category)
+        element = soup.find("span", class_="c-score-bar__title", string=category)
         if element:
             rating_span = element.find_next("span", class_="c-score-bar__score")
             logger.info(f"Category: {category}, Element: {element}, Rating Span: {rating_span}")
