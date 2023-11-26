@@ -87,8 +87,8 @@ def scrape_reviews(hotel_name, location):
 
     # Set up the payload template
     payload_template = {
-        "cc1": f"{location}",
-        "pagename": f"{hotel_name}",
+        "cc1": "ch",
+        "pagename": "badrutt-s-palace-st-moritz",
         "type": "total",
         "sort": "f_recent_desc",
         "time_of_year": "",
@@ -102,35 +102,43 @@ def scrape_reviews(hotel_name, location):
     # Set up logging configuration
     logger.add("scraping_log.log", rotation="500 MB", level="INFO")
 
-    # Initialize a list to store data
     data_list = []
 
     # Make requests and scrape data
     page = 1
     while True:
         payload = payload_template.copy()
-        payload["offset"] = (page - 1) * int(payload["rows"])  # Adjust offset for each page
+        payload["offset"] = (page - 1) * int(payload["rows"])
 
-        # Make the request
         response = requests.get(url_review, headers=headers, params=payload)
-
-        # Save parameters to the list
         params_list.append(payload)
 
-        # Parse the HTML content
         soup = BeautifulSoup(response.text, "html.parser")
         parsed = []
 
-        # Extract reviews
         review_boxes = soup.select(".review_list_new_item_block")
         if not review_boxes:
-            break  # Break out of the loop if no reviews are found
+            break
 
         for review_box in review_boxes:
             get_css = lambda css: review_box.select_one(css).text.strip() if review_box.select_one(css) else ""
+
+            # Extract the review text
+            review_text_element = review_box.select_one(".c-review__body")
+            review_text = "".join(review_text_element.stripped_strings) if review_text_element else ""
+
+            # Check if the review is negative
+            is_negative_review_icon = review_box.select_one(".c-review__icon.-iconset-review_poor")
+            is_negative_review = bool(is_negative_review_icon)
+
+            # Extract the text associated with the negative review icon
+            negative_review_text = ""
+            if is_negative_review and review_text_element:
+                negative_review_text = review_text_element.find_next("span", {"class": "c-review__body"}).text.strip()
+
             parsed.append(
                 {
-                    "hotel_name": hotel_name,
+                    "hotel_name": "badrutt-s-palace-st-moritz",
                     "review_id": review_box.get("data-review-url"),
                     "review_score": get_css(".bui-review-score__badge"),
                     "review_title": get_css(".c-review-block__title"),
@@ -141,27 +149,19 @@ def scrape_reviews(hotel_name, location):
                     "stay_date": get_css(".c-review-block__stay-date .c-review-block__date"),
                     "travel_type": get_css(".review-panel-wide__traveller_type .bui-list__body"),
                     "stay_night": get_css(".c-review-block__stay-date .bui-list__body"),
-                    "review_text": "".join(review_box.select_one(".c-review__body").stripped_strings)
-                    if review_box.select_one(".c-review__body")
-                    else "",
-                    "lang": review_box.select_one(".c-review__body").get("lang")
-                    if review_box.select_one(".c-review__body")
-                    else "",
+                    "review_text": review_text,
+                    "lang": review_text_element.get("lang") if review_text_element else "",
+                    "negative_review": is_negative_review,  # Indicator if the review is negative
+                    "negative_review_text": negative_review_text,  # Text associated with the negative review
                 }
             )
 
-        # Add parsed data to the list
         data_list.extend(parsed)
-
-        # Process parsed data as needed
         logger.info(f"Page {page} processed. Total reviews: {len(parsed)}")
-
         page += 1
         time.sleep(1.5)
 
-    # Convert data list to a pandas DataFrame
     review_details_df = pd.DataFrame(data_list)
-
     # Return the DataFrame
     return review_details_df
 
