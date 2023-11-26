@@ -136,6 +136,8 @@ def scrape_reviews(hotel_name, location):
             if is_negative_review and review_text_element:
                 negative_review_text = review_text_element.find_next("span", {"class": "c-review__body"}).text.strip()
 
+            response_review = get_css(".c-review-block__response__body")
+
             parsed.append(
                 {
                     "hotel_name": "badrutt-s-palace-st-moritz",
@@ -151,8 +153,9 @@ def scrape_reviews(hotel_name, location):
                     "stay_night": get_css(".c-review-block__stay-date .bui-list__body"),
                     "review_text": review_text,
                     "lang": review_text_element.get("lang") if review_text_element else "",
-                    "negative_review": is_negative_review,  # Indicator if the review is negative
-                    "negative_review_text": negative_review_text,  # Text associated with the negative review
+                    "negative_review": is_negative_review,
+                    "negative_review_text": negative_review_text,
+                    "response_review": response_review,
                 }
             )
 
