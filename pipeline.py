@@ -87,8 +87,8 @@ def scrape_reviews(hotel_name, location):
 
     # Set up the payload template
     payload_template = {
-        "cc1": "ch",
-        "pagename": "badrutt-s-palace-st-moritz",
+        "cc1": f"{location}",
+        "pagename": f"{hotel_name}",
         "type": "total",
         "sort": "f_recent_desc",
         "time_of_year": "",
@@ -140,7 +140,7 @@ def scrape_reviews(hotel_name, location):
 
             parsed.append(
                 {
-                    "hotel_name": "badrutt-s-palace-st-moritz",
+                    "hotel_name": hotel_name,
                     "review_id": review_box.get("data-review-url"),
                     "review_score": get_css(".bui-review-score__badge"),
                     "review_title": get_css(".c-review-block__title"),
