@@ -106,6 +106,7 @@ def scrape_reviews(hotel_name, location):
 
     # Make requests and scrape data
     page = 1
+    total_reviews = 0
     while True:
         payload = payload_template.copy()
         payload["offset"] = (page - 1) * int(payload["rows"])
@@ -125,7 +126,7 @@ def scrape_reviews(hotel_name, location):
 
             # Extract the review text
             review_text_element = review_box.select_one(".c-review__body")
-            review_text = "".join(review_text_element.stripped_strings) if review_text_element else ""
+            review_text = "".join(review_text_element.stripped_strings) if review_text_element else "No review."
 
             # Check if the review is negative
             is_negative_review_icon = review_box.select_one(".c-review__icon.-iconset-review_poor")
@@ -134,7 +135,8 @@ def scrape_reviews(hotel_name, location):
             # Extract the text associated with the negative review icon
             negative_review_text = ""
             if is_negative_review and review_text_element:
-                negative_review_text = review_text_element.find_next("span", {"class": "c-review__body"}).text.strip()
+                negative_review_text_element = review_text_element.find_next("span", {"class": "c-review__body"})
+                negative_review_text = negative_review_text_element.text.strip() if negative_review_text_element else ""
 
             response_review = get_css(".c-review-block__response__body")
 
@@ -159,11 +161,13 @@ def scrape_reviews(hotel_name, location):
                 }
             )
 
+        total_reviews += len(parsed)
         data_list.extend(parsed)
         logger.info(f"Page {page} processed. Total reviews: {len(parsed)}")
         page += 1
         time.sleep(1.5)
 
+    logger.info(f"Scraping complete. Total reviews obtained: {total_reviews}")
     review_details_df = pd.DataFrame(data_list)
     # Return the DataFrame
     return review_details_df
