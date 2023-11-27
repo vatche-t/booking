@@ -255,10 +255,6 @@ def merge_hotel_info_and_reviews(hotel_name, location):
     return merged_hotels_df
 
 
-file_path = "hotels.txt"  # Replace with the actual path to your file
-hotel_data = extract_names_and_locations_from_file(file_path)
-
-
 def save_to_feather(df, file_name):
     folder_path = "hotel_data_feather"
     os.makedirs(folder_path, exist_ok=True)
@@ -272,17 +268,6 @@ def save_to_feather(df, file_name):
         print(f"Error saving file {file_path}: {e}")
         # Log the error or take any necessary logging action
         pass  # Continue execution even if there's an error
-
-
-# Inside your loop
-for hotel in hotel_data:
-    hotel_name = hotel["hotel_name"]
-    location = hotel["location"]
-
-    merged_hotel_data = merge_hotel_info_and_reviews(hotel_name, location)
-
-    # Save the merged_data as a feather file
-    save_to_feather(merged_hotel_data, hotel_name)
 
 
 def merge_feather_files_and_save_csv_and_excel():
@@ -314,5 +299,18 @@ def merge_feather_files_and_save_csv_and_excel():
     return final_hotels_reviews_df
 
 
+file_path = "hotels.txt"  # Replace with the actual path to your file
+hotel_data = extract_names_and_locations_from_file(file_path)
+
 # Call the function to merge feather files and save as CSV and Excel
+
+for hotel in hotel_data:
+    hotel_name = hotel["hotel_name"]
+    location = hotel["location"]
+
+    merged_hotel_data = merge_hotel_info_and_reviews(hotel_name, location)
+
+    # Save the merged_data as a feather file
+    save_to_feather(merged_hotel_data, hotel_name)
+
 merge_feather_files_and_save_csv_and_excel()
