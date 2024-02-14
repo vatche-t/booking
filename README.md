@@ -78,3 +78,6 @@ This function scrapes reviews for a given hotel name and location. It supports p
 
 ```bash
 python main.py
+
+
+Last updated on: 2024-02-14
